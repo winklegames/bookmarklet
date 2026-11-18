@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b0c">
+  <title>Bookmarklet Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg:#0b0b0c; --panel:#111113; --panel2:#171719; --border:#29292e;
+      --muted:#92929c; --text:#f4f4f5; --accent:#ff8a3d; --accent2:#ffad70;
+      --green:#74d99f; --radius:13px;
+    }
+    * { box-sizing:border-box }
+    body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font:14px Geist, sans-serif; }
+    button, input { font:inherit }
+    button { color:inherit; cursor:pointer }
+    .app { max-width:1500px; margin:auto; padding:28px 30px 36px; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:20px; padding-bottom:24px; border-bottom:1px solid var(--border); }
+    .brand { display:flex; align-items:center; gap:12px; min-width:0; }
+    .logo { width:36px; height:36px; display:grid; place-items:center; color:#17100b; background:var(--accent); border-radius:11px; font-size:20px; }
+    .brand-name { font-size:15px; font-weight:650; letter-spacing:-.35px }
+    .brand-sub { color:var(--muted); font-size:12px; margin-top:3px }
+    .header-right { display:flex; align-items:center; gap:9px; color:var(--muted); font:11px 'Geist Mono',monospace; }
+    .status-dot { width:7px; height:7px; border-radius:50%; background:var(--green); box-shadow:0 0 10px #74d99f55; }
+    .intro { padding:30px 0 23px; display:flex; justify-content:space-between; align-items:end; gap:24px; }
+    h1 { margin:0; font-size:clamp(25px,4vw,34px); letter-spacing:-1.25px; font-weight:650; }
+    .intro p { color:var(--muted); margin:8px 0 0; line-height:1.5; }
+    .version { color:#777780; font:11px 'Geist Mono',monospace; white-space:nowrap; }
+    .workspace { display:grid; grid-template-columns:minmax(0,1fr) 310px; gap:16px; align-items:stretch; }
+    .editor-card,.side-card,.output-card { border:1px solid var(--border); background:var(--panel); border-radius:var(--radius); overflow:hidden; }
+    .card-head { min-height:48px; padding:0 15px; display:flex; align-items:center; justify-content:space-between; gap:12px; border-bottom:1px solid var(--border); }
+    .card-title { display:flex; align-items:center; gap:9px; font-weight:600; font-size:12px; }
+    .card-title i { color:var(--accent); font-size:15px; }
+    .editor-tools { display:flex; gap:6px; align-items:center; }
+    .tiny-btn,.select-btn { border:1px solid transparent; color:#a5a5ad; background:transparent; border-radius:7px; padding:6px 8px; font-size:11px; }
+    .tiny-btn:hover,.select-btn:hover { color:white; background:#222226; border-color:#34343a; }
+    #editor { height:510px; width:100%; }
+    .editor-foot { height:34px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 13px; color:#777780; font:10px 'Geist Mono',monospace; }
+    .editor-foot span { display:flex; gap:14px; }
+    .side-card { padding-bottom:14px; }
+    .side-section { padding:15px 15px 0; }
+    .section-label { color:#8d8d97; text-transform:uppercase; letter-spacing:.9px; font:10px 'Geist Mono',monospace; margin-bottom:10px; }
+    .field { width:100%; border:1px solid var(--border); outline:none; border-radius:8px; background:#0c0c0e; color:var(--text); padding:10px 11px; font-size:12px; }
+    .field:focus { border-color:#8a593c; box-shadow:0 0 0 3px #ff8a3d12; }
+    .hint { color:#777780; font-size:11px; line-height:1.5; margin:7px 1px 0; }
+    .preset-list { display:grid; gap:6px; }
+    .preset { text-align:left; display:flex; align-items:center; justify-content:space-between; gap:10px; border:1px solid var(--border); background:#151517; border-radius:8px; padding:9px 10px; font-size:11px; color:#d5d5da; }
+    .preset:hover { border-color:#55515a; background:#1b1b1e; }
+    .preset i { color:#777780; font-size:14px; }
+    .toggle-row { display:flex; align-items:center; justify-content:space-between; color:#c6c6cc; font-size:12px; padding:8px 0; }
+    .toggle-row input { accent-color:var(--accent); width:14px; height:14px; }
+    .output-card { margin-top:16px; }
+    .output-content { padding:15px; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-items:center; }
+    .output-left { min-width:0; }
+    .output-label { color:#92929c; font:10px 'Geist Mono',monospace; text-transform:uppercase; letter-spacing:.8px; margin-bottom:8px; }
+    #output { display:block; width:100%; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; border:1px solid var(--border); border-radius:8px; background:#0b0b0d; padding:11px; color:#c5c5cb; font:11px 'Geist Mono',monospace; }
+    .actions { display:flex; gap:8px; }
+    .btn { border:1px solid var(--border); border-radius:8px; background:#1a1a1d; padding:10px 13px; font-size:11px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; gap:7px; white-space:nowrap; }
+    .btn:hover { background:#242428; }
+    .btn.primary { background:var(--accent); color:#1a1009; border-color:var(--accent); }
+    .btn.primary:hover { background:var(--accent2); }
+    .btn i { font-size:14px; }
+    .install-row { border-top:1px solid var(--border); padding:12px 15px; display:flex; align-items:center; justify-content:space-between; gap:12px; }
+    .install-copy { color:#8e8e98; font-size:11px; line-height:1.45; }
+    .install-copy strong { color:#d7d7dc; font-weight:550; }
+    #bookmarkLink { text-decoration:none; }
+    .notice { display:none; margin:12px 15px 0; padding:10px 11px; border:1px solid #725038; background:#261b14; color:#eab58e; border-radius:8px; font-size:11px; line-height:1.5; }
+    .notice.show { display:block; }
+    footer { display:flex; justify-content:space-between; gap:15px; padding-top:18px; color:#686871; font-size:10px; line-height:1.5; }
+    footer a { color:#a5a5ad; text-decoration:none; }
+    footer a:hover { color:white; }
+    .toast { position:fixed; bottom:22px; left:50%; transform:translate(-50%,12px); opacity:0; pointer-events:none; background:#242428; border:1px solid #3a3a40; padding:10px 14px; border-radius:9px; font-size:12px; box-shadow:0 8px 30px #0008; transition:.2s; z-index:10; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    @media(max-width:850px) { .workspace { grid-template-columns:1fr; } #editor { height:430px; } .side-card { display:grid; grid-template-columns:1fr 1fr; } .side-card>.card-head { grid-column:1/-1; } .side-section { padding-top:14px; } }
+    @media(max-width:560px) { .app { padding:17px 13px 26px; } header { padding-bottom:17px; } .intro { padding:24px 0 18px; } .version { display:none; } .side-card { display:block; } .output-content { grid-template-columns:1fr; } .actions { display:grid; grid-template-columns:1fr 1fr; } .install-row { align-items:flex-start; flex-direction:column; } #bookmarkLink { width:100%; } footer { flex-direction:column; } }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="brand">
+        <div class="logo"><i class="ti ti-bookmark-code"></i></div>
+        <div><div class="brand-name">Bookmarklet Studio</div><div class="brand-sub">Write. Encode. Add to bookmarks.</div></div>
+      </div>
+      <div class="header-right"><span class="status-dot"></span> LOCAL EDITOR</div>
+    </header>
+
+    <section class="intro">
+      <div><h1>Your browser, your tools.</h1><p>Turn JavaScript into a bookmarklet you can run on any page.</p></div>
+      <div class="version">STUDIO / 01</div>
+    </section>
+
+    <section class="workspace">
+      <div class="editor-card">
+        <div class="card-head">
+          <div class="card-title"><i class="ti ti-code"></i> JavaScript editor</div>
+          <div class="editor-tools">
+            <button class="tiny-btn" id="formatBtn" title="Format code"><i class="ti ti-align-left"></i> Format</button>
+            <button class="tiny-btn" id="clearBtn" title="Clear editor"><i class="ti ti-trash"></i> Clear</button>
+          </div>
+        </div>
+        <div id="editor"></div>
+        <div class="editor-foot"><span><span id="editorStatus">Loading Monaco…</span><span id="lineCount">1 LINE</span></span><span>JAVASCRIPT · UTF-8</span></div>
+      </div>
+
+      <aside class="side-card">
+        <div class="card-head"><div class="card-title"><i class="ti ti-adjustments"></i> Configuration</div><span style="color:#777780;font:10px 'Geist Mono'">SETUP</span></div>
+        <div class="side-section">
+          <div class="section-label">Bookmarklet name</div>
+          <input class="field" id="nameInput" value="My Bookmarklet" maxlength="60" spellcheck="false">
+          <p class="hint">Used as the bookmark's display name.</p>
+        </div>
+        <div class="side-section">
+          <div class="section-label">Quick starts</div>
+          <div class="preset-list">
+            <button class="preset" data-preset="page"><span>Page information</span><i class="ti ti-arrow-up-right"></i></button>
+            <button class="preset" data-preset="dark"><span>Toggle dark mode</span><i class="ti ti-arrow-up-right"></i></button>
+            <button class="preset" data-preset="reader"><span>Reader-friendly view</span><i class="ti ti-arrow-up-right"></i></button>
+            <button class="preset" data-preset="top"><span>Scroll to top</span><i class="ti ti-arrow-up-right"></i></button>
+          </div>
+        </div>
+        <div class="side-section">
+          <div class="section-label">Output options</div>
+          <label class="toggle-row"><span>Wrap in self-executing function</span><input type="checkbox" id="wrapToggle" checked></label>
+          <label class="toggle-row"><span>Encode for bookmark URL</span><input type="checkbox" id="encodeToggle" checked></label>
+          <p class="hint">Encoding is required for reliable bookmarklet URLs. The generated link updates as you type.</p>
+        </div>
+      </aside>
+    </section>
+
+    <section class="output-card">
+      <div class="card-head"><div class="card-title"><i class="ti ti-link"></i> Generated bookmarklet</div><span id="outputStatus" style="color:#74d99f;font:10px 'Geist Mono'">READY</span></div>
+      <div class="output-content">
+        <div class="output-left"><div class="output-label">Bookmark URL</div><code id="output">javascript:…</code></div>
+        <div class="actions">
+          <button class="btn" id="copyBtn"><i class="ti ti-copy"></i> Copy URL</button>
+          <button class="btn primary" id="copyCodeBtn"><i class="ti ti-braces"></i> Copy code</button>
+        </div>
+      </div>
+      <div class="install-row">
+        <div class="install-copy"><strong>Install it in your bookmarks bar</strong><br>Drag the button to your bookmarks bar, or copy the URL and paste it into a bookmark's address field.</div>
+        <a class="btn primary" id="bookmarkLink" href="javascript:void(0)"><i class="ti ti-bookmark-plus"></i> Drag to bookmarks</a>
+      </div>
+      <div class="notice" id="warning">Your code is empty or contains a syntax error. Check the editor before using this bookmarklet.</div>
+    </section>
+
+    <footer><span>Code runs in the context of the page where you activate the bookmarklet.</span><span>Monaco Editor · <a href="https://microsoft.github.io/monaco-editor/" target="_blank" rel="noreferrer">About Monaco</a></span></footer>
+  </main>
+  <div class="toast" id="toast">Copied to clipboard</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+  <script>
+    const presets = {
+      page: `(() => {
+  const info = {
+    title: document.title,
+    url: location.href,
+    dimensions: innerWidth + " × " + innerHeight
+  };
+  alert(
+    "Page information\\n\\n" +
+    "Title: " + info.title + "\\n" +
+    "URL: " + info.url + "\\n" +
+    "Viewport: " + info.dimensions
+  );
+})();`,
+      dark: `(() => {
+  const id = "__bookmarklet_dark_mode";
+  const existing = document.getElementById(id);
+  if (existing) {
+    existing.remove();
+    document.documentElement.style.filter = "";
+    return;
+  }
+  const style = document.createElement("style");
+  style.id = id;
+  style.textContent = \`
+    html {
+      filter: invert(1) hue-rotate(180deg) !important;
+      background: #fff !important;
+    }
+    img, video, iframe, canvas, picture, svg {
+      filter: invert(1) hue-rotate(180deg) !important;
+    }
+  \`;
+  document.head.appendChild(style);
+})();`,
+      reader: `(() => {
+  document.querySelectorAll("nav, aside, footer, [role='navigation'], . 광고").forEach(el => {
+    el.dataset.bookmarkletHidden = "1";
+    el.style.display = "none";
+  });
+  document.body.style.maxWidth = "820px";
+  document.body.style.margin = "40px auto";
+  document.body.style.padding = "0 24px";
+  document.body.style.fontSize = "18px";
+  document.body.style.lineHeight = "1.75";
+  document.body.style.fontFamily = "Georgia, serif";
+  document.body.style.background = "#faf8f2";
+  document.body.style.color = "#242424";
+})();`,
+      top: `window.scrollTo({ top: 0, behavior: "smooth" });`
+    };
+
+    let editor;
+    const $ = id => document.getElementById(id);
+    const initialCode = `(() => {
+  // Your bookmarklet code goes here.
+  alert("Hello from your bookmarklet!");
+})();`;
+
+    function getSource() {
+      let source = editor ? editor.getValue() : initialCode;
+      if ($("wrapToggle").checked) {
+        source = source.trim();
+        if (!(source.startsWith("javascript:"))) {
+          source = `javascript:(function(){\\n${source}\\n})();`;
+        }
+      } else if (!source.trim().startsWith("javascript:")) {
+        source = "javascript:" + source;
+      }
+      return source;
+    }
+
+    function updateOutput() {
+      if (!editor) return;
+      const raw = editor.getValue().trim();
+      const wrapped = getSource();
+      const url = $("encodeToggle").checked
+        ? "javascript:" + encodeURIComponent(wrapped.replace(/^javascript:/, ""))
+        : wrapped;
+      $("output").textContent = url || "javascript:";
+      $("bookmarkLink").href = url || "javascript:void(0)";
+      $("bookmarkLink").textContent = "↗  " + ($("nameInput").value.trim() || "Bookmarklet");
+      $("lineCount").textContent = `${editor.getValue().split("\\n").length} LINE${editor.getValue().split("\\n").length === 1 ? "" : "S"}`;
+      $("outputStatus").textContent = raw ? "READY" : "EMPTY";
+      $("outputStatus").style.color = raw ? "var(--green)" : "#e6a46f";
+      $("warning").classList.toggle("show", !raw);
+    }
+
+    function toast(message) {
+      $("toast").textContent = message;
+      $("toast").classList.add("show");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => $("toast").classList.remove("show"), 1800);
+    }
+
+    async function copyText(value, message) {
+      try {
+        await navigator.clipboard.writeText(value);
+        toast(message);
+      } catch {
+        const area = document.createElement("textarea");
+        area.value = value; document.body.appendChild(area); area.select();
+        document.execCommand("copy"); area.remove(); toast(message);
+      }
+    }
+
+    require.config({ paths: { vs: "https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs" } });
+    window.MonacoEnvironment = {
+      getWorkerUrl: function() {
+        const proxy = `self.MonacoEnvironment = { baseUrl: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/' }; importScripts('https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/base/worker/workerMain.js');`;
+        return "data:text/javascript;charset=utf-8," + encodeURIComponent(proxy);
+      }
+    };
+
+    require(["vs/editor/editor.main"], function() {
+      monaco.editor.defineTheme("studio-dark", {
+        base: "vs-dark", inherit: true,
+        rules: [{ token: "comment", foreground: "777780", fontStyle: "italic" }, { token: "string", foreground: "b8cf9e" }],
+        colors: {
+          "editor.background": "#111113", "editorLineNumber.foreground": "#55555e",
+          "editorLineNumber.activeForeground": "#c2c2c8", "editorCursor.foreground": "#ff9b5b",
+          "editor.selectionBackground": "#ff8a3d30", "editor.lineHighlightBackground": "#ffffff06",
+          "editorIndentGuide.background1": "#28282d", "editorIndentGuide.activeBackground1": "#48484f"
+        }
+      });
+      editor = monaco.editor.create($("editor"), {
+        value: initialCode, language: "javascript", theme: "studio-dark",
+        automaticLayout: true, minimap: { enabled: false }, fontFamily: "'Geist Mono', monospace",
+        fontSize: 12, lineHeight: 21, tabSize: 2, insertSpaces: true,
+        scrollBeyondLastLine: false, smoothScrolling: true, cursorSmoothCaretAnimation: "on",
+        padding: { top: 14, bottom: 14 }, renderLineHighlight: "line",
+        guides: { indentation: true }, wordWrap: "on", roundedSelection: true,
+        overviewRulerLanes: 0, hideCursorInOverviewRuler: true
+      });
+      editor.onDidChangeModelContent(updateOutput);
+      $("editorStatus").textContent = "MONACO READY";
+      updateOutput();
+    }, function() {
+      $("editorStatus").textContent = "EDITOR FAILED TO LOAD";
+      $("editor").innerHTML = '<div style="padding:20px;color:#e6a46f;font:12px Geist">Monaco could not load. Check your connection and refresh the page.</div>';
+    });
+
+    ["nameInput", "wrapToggle", "encodeToggle"].forEach(id => $(id).addEventListener("input", updateOutput));
+    $("formatBtn").addEventListener("click", () => editor && editor.getAction("editor.action.formatDocument").run());
+    $("clearBtn").addEventListener("click", () => {
+      if (editor) { editor.setValue(""); editor.focus(); }
+    });
+    $("copyBtn").addEventListener("click", () => copyText($("output").textContent, "Bookmarklet URL copied"));
+    $("copyCodeBtn").addEventListener("click", () => editor && copyText(editor.getValue(), "JavaScript copied"));
+    document.querySelectorAll("[data-preset]").forEach(button => {
+      button.addEventListener("click", () => {
+        if (!editor) return;
+        editor.setValue(presets[button.dataset.preset]);
+        $("nameInput").value = button.textContent.trim();
+        updateOutput();
+      });
+    });
+    window.addEventListener("resize", () => editor && editor.layout());
+  </script>
+</body>
+</html>
